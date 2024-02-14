@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if ! gdown -V &> /dev/null;
+then
+    echo "Must install gdown before proceeding."
+    echo "Refer to: https://github.com/wkentaro/gdown"
+else
+    gdown 1VxrI_l90dOPoS3ToNWPAqDtO7aQZb56Z -O ctu13.tar.gz
+fi
