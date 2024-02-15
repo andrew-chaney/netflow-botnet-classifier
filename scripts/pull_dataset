@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if ! gdown -V &> /dev/null;
+if ! gdown -V &> /dev/null
 then
-    echo "Must install gdown before proceeding."
+    echo "ERROR: must install gdown before proceeding. Try downloading python dependencies."
     echo "Refer to: https://github.com/wkentaro/gdown"
 else
-    gdown 1VxrI_l90dOPoS3ToNWPAqDtO7aQZb56Z -O ctu13.tar.gz
+    gdown 1A1O93XsD0j-46t6_Zu2y59iBFwG9IcUM -O ctu13.tar.gz
 fi

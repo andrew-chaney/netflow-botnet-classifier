@@ -1,0 +1,80 @@
+#!/bin/bash
+
+if [ -z $1 ]
+then
+    echo "ERROR: pass path to the unzipped ctu13 dataset as an argument"
+    exit
+fi
+
+# Clean file path passed as argument
+data_path=$(echo "$1" | tr -d '/')
+
+if [ ! -d $data_path ]
+then
+    echo "ERROR: missing ctu13 dataset"
+    echo "Run 'make pull_data' in the base of this project to pull the dataset."
+    exit
+fi
+
+for i in $(seq 1 13)
+do
+    base="$data_path/$i"
+
+    echo "Merging $base"
+
+    vast_file="$base/captureAsVast.txt"
+    feat_file="$base/features.txt"
+    src_ip_file="$base/src_ips.txt"
+    dest_ip_file="$base/dest_ips.txt"
+    timestamp_file="$base/timestamps.txt"
+    output_file_1="$base/merged1.txt"
+    output_file_2="$base/merged2.txt"
+    output_file_3="$base/merged.txt"
+
+    # Make sure that the vast file exists
+    if [ ! -f $vast_file ]
+    then
+        echo "ERROR: missing $vast_file"
+        exit
+    fi
+
+    # Make sure that the feature file exists
+    if [ ! -f $feat_file ]
+    then
+        echo "ERROR: missing $feat_file"
+        exit
+    fi
+    
+    # Make sure the the vast and feature files are the same length
+    vast_lc=$(wc -l $vast_file | awk '{print $1}')
+    feat_lc=$(wc -l $feat_file | awk '{print $1}')
+    if [ $vast_lc -ne $feat_lc ]
+    then
+        echo "ERROR: line counts between '$vast_file' and '$feat_file' don't match"
+        exit
+    fi
+
+    # Get all of the source IPs from the vast file
+    cat $vast_file | awk -F ',' '{print $7}' >> $src_ip_file
+ 
+    # Get all of the destination IPs from the vast file
+    cat $vast_file | awk -F ',' '{print $8}' >> $dest_ip_file
+
+    # Get all of the timestamps from the vast file
+    cat $vast_file | awk -F ',' '{print $3}' >> $timestamp_file
+
+    # Prepend all destination IPs to the feature file
+    paste -d ',' $dest_ip_file $feat_file > $output_file_1
+
+    # Prepend all source IPs to the feature file
+    paste -d ',' $src_ip_file $output_file_1 > $output_file_2
+
+    # Prepend all timestamps to the feature file
+    paste -d ',' $timestamp_file $output_file_2 > $output_file_3
+
+    # Remove the temporary merged files
+    for file in $output_file_1 $output_file_2
+    do
+        rm $file
+    done
+done
