@@ -1,10 +1,10 @@
 import argparse
+from concurrent.futures import as_completed, ProcessPoolExecutor
 import os
 import time
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 import numpy as np
-import pandas as pd
 
 FEATURE_COLS = [
     "timestamp",  # From merge_vast_and_features script output
@@ -62,23 +62,55 @@ def gather_merged_data_files(in_path: str) -> [str]:
     return output
 
 
-def write_df_to_csv(df: pd.DataFrame, ip: str, output_path: str) -> None:
-    file_name = "{}.txt".format(ip.replace('.', ''))
-    if ':' in ip:
-        file_name = file_name.replace(':', '')
+def write_arr_to_csv(arr: np.array, ip: str, output_path: str) -> None:
+    translation_table = str.maketrans({'.': '', ':': ''})
+    # We'll make three levels to the output directory due to the amount
+    # of output.
+    nested_dir = os.path.join(
+        output_path,
+        ip.translate(translation_table)[:3],
+    )
 
-    output_file = os.path.join(output_path, file_name)
+    if not os.path.exists(nested_dir):
+        os.mkdir(nested_dir)
+
+    output_dir = os.path.join(
+        nested_dir,
+        ip.translate(translation_table)[:6],
+    )
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
+    output_file = os.path.join(output_dir, "{}_grouped.txt".format(ip))
     with open(output_file, 'a') as file:
-        np.savetxt(file, df.to_numpy(), delimiter=',', fmt="%s")
+        np.savetxt(file, arr, delimiter=',', fmt="%s")
+
+
+def process_file(path: str, output_path: str) -> None:
+    src_ip_idx = FEATURE_COLS.index("src_ip")
+    data = np.loadtxt(path, delimiter=',', dtype=str)
+    for ip in np.unique(data[:, src_ip_idx]):
+        ip_data = data[data[:, src_ip_idx] == ip, :]
+        write_arr_to_csv(ip_data, ip, output_path)
 
 
 @function_timer
 def org_files_by_ip_addr(paths: [str], output_path: str) -> None:
-    for path in tqdm(paths, desc="Organizing Data Files By IP Addresses"):
-        df = pd.read_csv(path, names=FEATURE_COLS)
-        for ip in df.src_ip.unique():
-            ip_df = df.loc[df.src_ip == ip]
-            write_df_to_csv(ip_df, ip, output_path)
+    # Process input files in parallel
+    with ProcessPoolExecutor() as executor:
+        futures = {
+            executor.submit(
+                process_file,
+                path,
+                output_path,
+            ): path for path in paths
+        }
+        tqdm(
+            as_completed(futures),
+            total=len(paths),
+            desc="Organizing Data Files By IP Addresses",
+        )
 
 
 def main():
