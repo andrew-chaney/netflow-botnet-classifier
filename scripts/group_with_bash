@@ -176,5 +176,3 @@ then
 fi
 
 process_files
-
-rm nohup.out

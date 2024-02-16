@@ -2,7 +2,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor
 import os
 import time
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 import numpy as np
 
