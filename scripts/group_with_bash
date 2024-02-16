@@ -7,7 +7,6 @@ progress_bar()
     fill=$(($(($1*$SIZE))/$2))
     left=$(($SIZE-$fill))
 
-    printf "\r"
     for x in $(seq 1 "$fill")
     do
         printf "▇"
@@ -18,7 +17,7 @@ progress_bar()
         printf " "
     done
     
-    printf "| %d/%d - %s" "$1" "$2" "$3"
+    printf "| %d/%d - %s\n" "$1" "$2" "$3"
 }
 
 write_ip_data_to_file()
@@ -72,7 +71,21 @@ group_file()
         write_ip_data_to_file "$ip" "$file"
         ((count++))
     done
-    printf "\n"
+}
+
+update_overall_prog()
+{
+    if [ -f prog/overall_prog ]
+    then
+        rm prog/overall_prog
+    fi
+
+    # Output the current progress for each process
+    progs=$(find prog -type f)
+    for p in $progs
+    do
+        cat $p >> prog/overall_prog
+    done
 }
 
 process_files()
@@ -96,6 +109,7 @@ process_files()
         pids+=($proc_id)
         echo "Processing $merged_file with process $proc_id"
     done
+    echo
 
     # Wait until all of the processes are done
     running=0
@@ -117,6 +131,8 @@ process_files()
         then
             running=1
         fi
+
+        update_overall_prog
     done
 
     # When all processes are done running, clean up the prog output
@@ -146,3 +162,5 @@ then
 fi
 
 process_files
+
+rm nohup.out
