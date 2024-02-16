@@ -148,6 +148,8 @@ def main():
         print("ERROR: no merged data files found")
         return
 
+    print(f"{len(data_files)} data files found.")
+
     org_files_by_ip_addr(data_files, output_path)
 
 

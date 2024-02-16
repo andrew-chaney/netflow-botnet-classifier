@@ -16,6 +16,7 @@ then
     exit
 fi
 
+# For each scenario's data in the ctu13 dataset
 for i in $(seq 1 13)
 do
     base="$data_path/$i"

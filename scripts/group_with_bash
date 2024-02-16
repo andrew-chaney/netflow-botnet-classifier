@@ -1,0 +1,148 @@
+#!/bin/bash
+
+SIZE=$(($(tput cols)/3))
+
+progress_bar()
+{
+    fill=$(($(($1*$SIZE))/$2))
+    left=$(($SIZE-$fill))
+
+    printf "\r"
+    for x in $(seq 1 "$fill")
+    do
+        printf "▇"
+    done
+    
+    for x in $(seq 1 "$left")
+    do
+        printf " "
+    done
+    
+    printf "| %d/%d - %s" "$1" "$2" "$3"
+}
+
+write_ip_data_to_file()
+{
+    ip=$1
+    file=$2
+
+
+    nested_dir="$output_dir/$(echo "$ip" | sed 's/\.//g; s/://g' | cut -c1-3)"
+    file_dir="$nested_dir/$(echo "$ip" | sed 's/\.//g; s/://g' | cut -c1-6)"
+
+    # For each of the directories, create them if they don't exist
+    for dir in $output_dir $nested_dir $file_dir
+    do
+        if [ ! -d "$dir" ]
+        then
+            mkdir "$dir"
+        fi
+    done
+
+    output_file="${file_dir}/${ip}_grouped.txt"
+
+    # Get the lines from the file relevant to the ip and write them to the output file
+    grep "$ip" "$file" >> $output_file
+}
+
+# Group the inputted file by its source ips
+group_file()
+{
+    file=$1 
+
+    # Get the unique src or dst ips for the merged file
+    unique_ips=()
+    if [ "$grouping" -eq 0 ]
+    then
+        unique_ips=$(cat $file | awk -F ',' '{print $2}' | sort -u)
+    else
+        unique_ips=$(cat $file | awk -F ',' '{print $3}' | sort -u)
+    fi
+
+    prog_file=$(echo "$file" | awk -F '/' '{printf "prog/scenario_%02d_prog", $2}')
+    prog_desc=$(echo "$file" | awk -F '/' '{printf "grouping %02d/merged.txt", $2}')
+    total_ips=$(echo $unique_ips | awk '{print NF}')
+    count=0
+
+    for ip in $unique_ips
+    do
+        # Write progress bar to prog folder for that process
+        progress_bar $count $total_ips "$prog_desc" > $prog_file
+
+        write_ip_data_to_file "$ip" "$file"
+        ((count++))
+    done
+    printf "\n"
+}
+
+process_files()
+{
+    # We are going to run all of these jobs on separate processes
+    # So, store the pids
+    pids=()
+
+    # All progress bars will be written to separate files since they'll
+    # be running concurrently. Make the prog directory
+    if [ ! -d prog ]
+    then
+        mkdir prog
+    fi
+
+
+    for merged_file in $(find $input_dir -name "merged.txt")
+    do
+        group_file $merged_file &
+        proc_id=$!
+        pids+=($proc_id)
+        echo "Processing $merged_file with process $proc_id"
+    done
+
+    # Wait until all of the processes are done
+    running=0
+    while [ "$running" -eq 0 ]
+    do
+        flag=0
+
+        # Check for any currently running processes
+        for id in "${pids[@]}"
+        do
+            if ps | grep -q $id
+            then
+                flag=1
+            fi
+        done
+        
+        # If no running processes, stop the while loop
+        if [ "$flag" -eq 0 ]
+        then
+            running=1
+        fi
+    done
+
+    # When all processes are done running, clean up the prog output
+    echo "All processes complete. Cleaning prog directory..."
+    rm -r prog
+}
+
+if [[ -z $1 || -z $2 || -z $3 ]]
+then
+    echo "ERROR: no specified input directory detected."
+    echo "Usage: ./group_with_bash <input_data_directory> <output_data_directory> <src/dst>"
+    echo "ARGS:"
+    echo "  Input Data Directory:  directory containing the merged CTU13 data files"
+    echo "  Output Data Directory: directory you want the output to go to."
+    echo "  src/dst:               whether to group by source or destination IP addresses"
+    exit
+fi
+
+input_dir="$1"
+output_dir="$2"
+grouping=0
+
+# Determine whether we are grouping by src or dst. src=0 and dst=1
+if [ $3 = "dst" ]
+then
+    grouping=1
+fi
+
+process_files

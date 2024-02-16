@@ -162,3 +162,4 @@ cython_debug/
 ctu13/
 ctu13.tar.gz
 out/
+nohup.out
