@@ -73,18 +73,30 @@ group_file()
     done
 }
 
-update_overall_prog()
+display_prog()
 {
-    if [ -f prog/overall_prog ]
+    # If output previously displayed, clear the screen
+    if [ "$1" -eq 0 ]
     then
-        rm prog/overall_prog
+        for i in $(seq 1 13)
+        do
+            tput cuu1
+            tput el
+        done
+        echo -e "\c"
     fi
 
+
     # Output the current progress for each process
-    progs=$(find prog -type f)
-    for p in $progs
+    for i in $(seq 1 13)
     do
-        cat $p >> prog/overall_prog
+        file=$(printf "prog/scenario_%02d_prog" $i)
+        if [ -f $file ]
+        then
+            cat $file
+        else
+            echo "No data yet for $file"
+        fi
     done
 }
 
@@ -113,6 +125,7 @@ process_files()
 
     # Wait until all of the processes are done
     running=0
+    prog_output_flag=1
     while [ "$running" -eq 0 ]
     do
         flag=0
@@ -132,7 +145,8 @@ process_files()
             running=1
         fi
 
-        update_overall_prog
+        display_prog "$prog_output_flag"
+        prog_output_flag=0
     done
 
     # When all processes are done running, clean up the prog output
