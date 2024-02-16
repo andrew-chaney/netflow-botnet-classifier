@@ -101,19 +101,11 @@ def process_file(path: str, output_path: str) -> None:
 @function_timer
 def org_files_by_ip_addr(paths: [str], output_path: str, workers=None) -> None:
     # Process input files in parallel
-    with ProcessPoolExecutor(max_workers=workers) as executor:
-        futures = {
-            executor.submit(
-                process_file,
-                path,
-                output_path,
-            ): path for path in paths
-        }
-        tqdm(
-            as_completed(futures),
-            total=len(paths),
-            desc="Organizing Data Files By IP Addresses",
-        )
+    with tqdm(total=len(paths), desc="Organizing Data Files By IP Addresses") as progress:
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            for p in paths:
+                future = executor.submit(process_file, p, output_path)
+                future.add_done_callback(lambda x: progress.update())
 
 
 @function_timer
@@ -128,7 +120,7 @@ def verify_output(input_files: [str], output_dir: str) -> None:
     output_line_count = 0
     for root, _, files in os.walk(output_dir):
         for f in files:
-            with open(f, 'r') as file:
+            with open(os.path.join(root, f), 'r') as file:
                 for line in file:
                     output_line_count += 1
 
@@ -180,10 +172,10 @@ def main():
         print("ERROR: no merged data files found")
         return
 
-    print(f"{len(data_files)} data files found.")
+    print(f"{len(data_files)} data file(s) found.")
 
     org_files_by_ip_addr(data_files, output_path, FLAGS.workers)
-    verify_output(input_path, output_path)
+    verify_output(data_files, output_path)
 
 
 if __name__ == "__main__":
