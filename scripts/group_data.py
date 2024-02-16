@@ -84,7 +84,7 @@ def write_arr_to_csv(arr: np.array, ip: str, output_path: str) -> None:
 
     output_file = os.path.join(
         output_dir,
-        "{}_grouped.txt".format(ip.maketrans(translation_table)),
+        "{}_grouped.txt".format(ip),
     )
     with open(output_file, 'a') as file:
         np.savetxt(file, arr, delimiter=',', fmt="%s")
@@ -99,9 +99,9 @@ def process_file(path: str, output_path: str) -> None:
 
 
 @function_timer
-def org_files_by_ip_addr(paths: [str], output_path: str) -> None:
+def org_files_by_ip_addr(paths: [str], output_path: str, workers=None) -> None:
     # Process input files in parallel
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=workers) as executor:
         futures = {
             executor.submit(
                 process_file,
@@ -114,6 +114,28 @@ def org_files_by_ip_addr(paths: [str], output_path: str) -> None:
             total=len(paths),
             desc="Organizing Data Files By IP Addresses",
         )
+
+
+@function_timer
+def verify_output(input_files: [str], output_dir: str) -> None:
+    print("Verifying output line count...")
+    input_line_count = 0
+    for in_file in input_files:
+        with open(in_file, 'r') as file:
+            for line in file:
+                input_line_count += 1
+
+    output_line_count = 0
+    for root, _, files in os.walk(output_dir):
+        for f in files:
+            with open(f, 'r') as file:
+                for line in file:
+                    output_line_count += 1
+
+    if input_line_count == output_line_count:
+        print("Output matches input.")
+    else:
+        print("Output does NOT match input.")
 
 
 def main():
@@ -132,6 +154,13 @@ def main():
         type=str,
         required=True,
         help="Directory to output the organized data to.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        required=False,
+        default=None,
+        help="Number of workers to use.",
     )
 
     FLAGS = parser.parse_args()
@@ -153,7 +182,8 @@ def main():
 
     print(f"{len(data_files)} data files found.")
 
-    org_files_by_ip_addr(data_files, output_path)
+    org_files_by_ip_addr(data_files, output_path, FLAGS.workers)
+    verify_output(input_path, output_path)
 
 
 if __name__ == "__main__":
