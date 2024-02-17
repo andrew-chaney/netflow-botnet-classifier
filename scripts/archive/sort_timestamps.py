@@ -1,18 +1,10 @@
 import argparse
 import os
-import time
+from tqdm import tqdm
 
 import numpy as np
 
-
-def function_timer(func):
-    def decorator(*args, **kwargs):
-        t1 = time.time()
-        result = func(*args, **kwargs)
-        t2 = time.time()
-        print(f"{func.__name__}() executed in {(t2-t1):.6f}s")
-        return result
-    return decorator
+from utils import function_timer
 
 
 def sort_file(path: str) -> None:
@@ -28,9 +20,12 @@ def sort_file(path: str) -> None:
 
 @function_timer
 def process_files(input_dir: str):
+    file_lst = []
     for root, _, files in os.walk(input_dir):
         for file in files:
-            sort_file(os.path.join(root, file))
+            file_lst.append(os.path.join(root, file))
+
+    [sort_file(file) for file in tqdm(file_lst, desc="Sorting Files")]
 
 
 def main():

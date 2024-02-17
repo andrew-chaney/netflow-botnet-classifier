@@ -1,10 +1,11 @@
 import argparse
 from concurrent.futures import ProcessPoolExecutor
 import os
-import time
 from tqdm import tqdm
 
 import numpy as np
+
+from utils import function_timer
 
 FEATURE_COLS = [
     "timestamp",  # From merge_vast_and_features script output
@@ -40,16 +41,6 @@ FEATURE_COLS = [
     "feature26",  # FOREACH VerticesByDest ave(FirstSeenDestPacketCount,10000,2)
     "feature27",  # FOREACH VerticesByDest var(FirstSeenDestPacketCount,10000,2)
 ]
-
-
-def function_timer(func):
-    def decorator(*args, **kwargs):
-        t1 = time.time()
-        result = func(*args, **kwargs)
-        t2 = time.time()
-        print(f"{func.__name__}() executed in {(t2-t1):.6f}s")
-        return result
-    return decorator
 
 
 @function_timer
@@ -105,7 +96,7 @@ def org_files_by_ip_addr(paths: [str], output_path: str, workers=None) -> None:
         with ProcessPoolExecutor(max_workers=workers) as executor:
             for p in paths:
                 future = executor.submit(process_file, p, output_path)
-                future.add_done_callback(lambda x: progress.update())
+                future.add_done_callback(lambda _: progress.update())
 
 
 @function_timer
@@ -128,11 +119,11 @@ def verify_output(input_files: [str], output_dir: str) -> None:
         print("Output matches input.")
     else:
         print("Output does NOT match input.")
+        print(f"Input line count:  {input_line_count}")
+        print(f"Output line count: {output_line_count}")
 
 
 def main():
-    tqdm.pandas()
-
     # Process command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(

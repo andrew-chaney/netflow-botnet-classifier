@@ -3,6 +3,9 @@
 if [ -z $1 ]
 then
     echo "ERROR: pass path to the unzipped ctu13 dataset as an argument"
+    echo "Usage: ./merge_vast_and_features <path>"
+    echo "ARGS:"
+    echo "  path: path to the ctu13 dataset"
     exit
 fi
 

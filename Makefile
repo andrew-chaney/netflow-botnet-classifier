@@ -1,28 +1,25 @@
+aggregate_and_sort_dest:
+	./scripts/aggregate_and_sort ctu13 dst
+
+aggregate_and_sort_src:
+	./scripts/aggregate_and_sort ctu13 src
+
 clean:
 	rm -r ctu13
-	rm -r out
-	rm -r prog
+	rm aggregate.txt
+	rm sorted_aggregate.txt
 
 deep_clean:
 	rm -r ctu13
-	rm -r out
-	rm -r prog
 	rm ctu13.tar.gz
-
-group_data_bash:
-	./scripts/group_with_bash ctu13 cleaned src
-
-group_data_python:
-	python scripts/group_data.py --input-path ctu13 --output-path cleaned
+	rm aggregate.txt
+	rm sorted_aggregate.txt
 
 merge_data:
 	./scripts/merge_vast_and_features ctu13/
 
-pull_data_raw:
+pull_data:
 	./scripts/pull_dataset
 
-sort_data:
-	python scripts/sort_timestamps.py --input-path cleaned
-
-unpack_data_raw:
+unpack_data:
 	tar -xzvf ctu13.tar.gz
