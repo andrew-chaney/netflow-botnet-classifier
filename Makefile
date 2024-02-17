@@ -1,3 +1,5 @@
+.PHONY: aggregate_and_sort_src merge_data pull_data unpack_data
+
 aggregate_and_sort_dest:
 	./scripts/aggregate_and_sort ctu13 dst
 
@@ -20,6 +22,8 @@ merge_data:
 
 pull_data:
 	./scripts/pull_dataset
+
+run_data_pipeline: pull_data unpack_data merge_data aggregate_and_sort_src
 
 unpack_data:
 	tar -xzvf ctu13.tar.gz
