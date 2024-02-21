@@ -163,6 +163,5 @@ ctu13/
 ctu13.tar.gz
 cleaned/
 out/
+data/
 nohup.out
-sorted_aggregate.txt
-aggregate.txt

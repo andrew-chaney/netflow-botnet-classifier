@@ -1,26 +1,33 @@
 #!/bin/bash
 
 # Handle command line args
-if [[ -z $1 || -z $2 ]]
+if [[ -z $1 || -z $2 || -z $3 ]]
 then
     echo "ERROR: no grouping IP specified."
-    echo "Usage: ./aggregate_and_sort <path> <src/dst>"
+    echo "Usage: ./aggregate_and_sort <input path> <output path> <src/dst>"
     echo "ARGS:"
-    echo "  path:    path to the ctu13 dataset"
-    echo "  src/dst: whether to group by source or destination IP addresses"
+    echo "  input path:  path to the ctu13 dataset"
+    echo "  output path: path to the desired output directory"
+    echo "  src/dst:     whether to group by source or destination IP addresses"
     exit
 fi
 
 data_path=$(echo "$1" | tr -d '/')
+output_path=$(echo "$2" | tr -d '/')
 # Grouping is the index key to group on when we sort the aggregated file
 grouping=2
-if [ "$2" = "dst" ]
+if [ "$3" = "dst" ]
 then
     grouping=3
 fi
 
-agg_file="aggregate.txt"
-sort_file="sorted_aggregate.txt"
+if [ ! -d $output_path ];
+then
+    mkdir -p $output_path
+fi
+
+agg_file="$output_path/aggregate.txt"
+sort_file="$output_path/sorted_aggregate.txt"
 
 if [ -f $agg_file ]
 then
