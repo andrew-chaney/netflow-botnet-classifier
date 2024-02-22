@@ -139,7 +139,7 @@ class LSTMLanguageModel:
 
     def __prep_training_data__(self) -> None:
         """
-        Run the data preparation pipeline on the provided Netflow feature
+        Run the data preparation pipeline on the provided Netflow features
         data.
         """
         if self.data_ready:
@@ -157,6 +157,12 @@ class LSTMLanguageModel:
     def __prep_testing_data__(
             self, data: np.ndarray) -> (np.ndarray, np.ndarray):
         """
+        Run the data preparation pipeline on the provided Netflow features
+        testing data.
+
+        :param data: 2D Numpy array of Netflow features data
+
+        :returns: Tuple of Numpy arrays in the form of (X, y)
         """
         data = self.__flatten_to_strings__(data)
         sequences = []
