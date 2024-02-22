@@ -33,6 +33,9 @@ class LSTMLanguageModel:
 
         :param verbose: Display output as the model trains
         """
+        if self.model_trained:
+            return
+
         if not self.data_ready or not self.model_ready:
             self.__prep_training_data__()
             self.__activate_layers__()
@@ -47,6 +50,9 @@ class LSTMLanguageModel:
 
         :param data: 2D Numpy array of Netflow features data
         """
+        if not self.model_trained:
+            self.train()
+
         test_X, test_y = self.__prep_testing_data__(data)
         self.model.evaluate(test_X, test_y)
 
@@ -60,6 +66,9 @@ class LSTMLanguageModel:
         :returns: Numpy Float of the average log probability for the sequences
                   based on the model's understanding
         """
+        if not self.model_trained:
+            self.train()
+
         test_X, test_y = self.__prep_testing_data__(data)
         probabilities = []
         predictions = self.model.predict(test_X)
