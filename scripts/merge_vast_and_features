@@ -59,13 +59,13 @@ do
     fi
 
     # Get all of the source IPs from the vast file
-    cat $vast_file | awk -F ',' '{print $7}' >> $src_ip_file
+    awk -F ',' '{print $7}' $vast_file > $src_ip_file
  
     # Get all of the destination IPs from the vast file
-    cat $vast_file | awk -F ',' '{print $8}' >> $dest_ip_file
+    awk -F ',' '{print $8}' $vast_file > $dest_ip_file
 
     # Get all of the timestamps from the vast file
-    cat $vast_file | awk -F ',' '{print $3}' >> $timestamp_file
+    awk -F ',' '{print $3}' $vast_file > $timestamp_file
 
     # Prepend all destination IPs to the feature file
     paste -d ',' $dest_ip_file $feat_file > $output_file_1

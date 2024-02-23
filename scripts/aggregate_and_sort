@@ -29,7 +29,7 @@ fi
 agg_file="$output_path/aggregate.txt"
 sort_file="$output_path/sorted_aggregate.txt"
 benign_file="$output_path/sorted_benign_traffic.txt"
-bot_file="$output_path/sorted_bot_traffic.txt
+bot_file="$output_path/sorted_bot_traffic.txt"
 
 if [ -f $agg_file ]
 then
@@ -50,8 +50,8 @@ then
 fi
 
 # Group by IP address and then sort the groupings by time stamp
-sort -t ',' -k "$grouping","$grouping" -k 1,1 -s $agg_file > $sort_file
+sort -t ',' -k $grouping,$grouping -k 1,1 -s $agg_file > $sort_file
 
 # Put the bot and benign traffic into separate files
-awk -F ',' '{if ($4=="0") {print $0}}" > $benign_file
-awk -F ',' '{if ($4=="1") {print $0}}" > $benign_file
+awk -F ',' '{ if ($4==0) {print $0}}' $sort_file > $benign_file
+awk -F ',' '{ if ($4==1) {print $0}}' $sort_file > $bot_file
