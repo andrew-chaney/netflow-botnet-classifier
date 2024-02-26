@@ -2,11 +2,12 @@ import argparse
 import os
 
 import numpy as np
+from numpy import ndarray
 
 from models.lstm_language_model import LSTMLanguageModel
 
 
-def load_data(path: str) -> np.ndarray:
+def load_data(path: str) -> ndarray:
     """
     Loads the data from a CSV data file path to a Numpy array.
 
@@ -15,10 +16,10 @@ def load_data(path: str) -> np.ndarray:
     :returns: 2D Numpy array of strings, each row corresponding to a line in
               the file
     """
-    return np.loadtxt(path, delimiter=',', dtype=str)
+    return np.loadtxt(path, delimiter=",", dtype=str)
 
 
-def split_data(data: np.ndarray, split: float=0.8) -> (np.ndarray, np.ndarray):
+def split_data(data: ndarray, split: float = 0.8) -> tuple[ndarray, ndarray]:
     """
     Splits data into training and testing sets based on unique IPs.
 

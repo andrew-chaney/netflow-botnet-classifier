@@ -7,6 +7,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
 import numpy as np
+from numpy import ndarray
 
 
 class LSTMLanguageModel:
@@ -18,7 +19,7 @@ class LSTMLanguageModel:
     :param epochs: Number of times for model to train on the provided dataset
     """
 
-    def __init__(self, features: np.ndarray, epochs: int = 100):
+    def __init__(self, features: ndarray, epochs: int = 100):
         # Persist training data
         self.X = features
         self.epochs = epochs
@@ -44,7 +45,7 @@ class LSTMLanguageModel:
         self.model.fit(self.X, self.y, epochs=self.epochs, verbose=v)
         self.model_trained = True
 
-    def evaluate(self, data: np.ndarray) -> None:
+    def evaluate(self, data: ndarray) -> None:
         """
         Run the model's evaluation function given some testing data.
 
@@ -56,7 +57,7 @@ class LSTMLanguageModel:
         test_X, test_y = self.__prep_testing_data__(data)
         self.model.evaluate(test_X, test_y)
 
-    def evaluate_predictions(self, data: np.ndarray) -> np.float_:
+    def evaluate_predictions(self, data: ndarray) -> np.float_:
         """
         Given some testing data, find the probability of accurate predictions
         throughout a Netflow's sequence of features.
@@ -103,7 +104,7 @@ class LSTMLanguageModel:
         )
         self.model_ready = True
 
-    def __tokenize__(self, data: np.ndarray) -> None:
+    def __tokenize__(self, data: ndarray) -> None:
         """
         Fit the Tokenizer to the data sequences.
 
@@ -114,7 +115,7 @@ class LSTMLanguageModel:
             self.tokenizer.fit_on_texts([seq])
         self.total_words = len(self.tokenizer.word_index) + 1
 
-    def __sequence__(self, data: np.ndarray) -> None:
+    def __sequence__(self, data: ndarray) -> None:
         """
         Generate padded, tokenized sequences to train on from the data. Saves
         generated sequences and information to the object to be called later.
@@ -126,15 +127,18 @@ class LSTMLanguageModel:
         for seq in tqdm(data, desc="Tokenizing Sequences"):
             tokens = self.tokenizer.texts_to_sequences([seq])[0]
             for i in range(1, len(tokens)):
-                self.sequences.append(tokens[:i+1])
+                self.sequences.append(tokens[: i + 1])
         # Pad the sequences to the same length
         self.max_len = max([len(seq) for seq in self.sequences])
-        self.sequences = np.array(pad_sequences(
-            self.sequences, maxlen=self.max_len, padding="pre",
-        ))
+        self.sequences = np.array(
+            pad_sequences(
+                self.sequences,
+                maxlen=self.max_len,
+                padding="pre",
+            )
+        )
 
-    def __flatten_to_strings__(
-            self, arr: np.ndarray, delim: str = ' ') -> np.ndarray:
+    def __flatten_to_strs__(self, arr: ndarray, delim: str = " ") -> ndarray:
         """
         Takes a 2D Numpy array, flattens each sub-array to a string joined by
         a specified delimiter, and returns the resulting 1D array of strings.
@@ -154,17 +158,19 @@ class LSTMLanguageModel:
         if self.data_ready:
             return
 
-        self.X = self.__flatten_to_strings__(self.X)
+        self.X = self.__flatten_to_strs__(self.X)
         self.__tokenize__(self.X)
         self.__sequence__(self.X)
         self.X = self.sequences[:, :-1]
-        self.y = np.array(to_categorical(
-            self.sequences[:, -1], num_classes=self.total_words,
-        ))
+        self.y = np.array(
+            to_categorical(
+                self.sequences[:, -1],
+                num_classes=self.total_words,
+            )
+        )
         self.data_ready = True
 
-    def __prep_testing_data__(
-            self, data: np.ndarray) -> (np.ndarray, np.ndarray):
+    def __prep_testing_data__(self, data: ndarray) -> tuple[ndarray, ndarray]:
         """
         Run the data preparation pipeline on the provided Netflow features
         testing data.
@@ -173,17 +179,22 @@ class LSTMLanguageModel:
 
         :returns: Tuple of Numpy arrays in the form of (X, y)
         """
-        data = self.__flatten_to_strings__(data)
+        data = self.__flatten_to_strs__(data)
         sequences = []
         for d in data:
             # Tokenize the data point and break into sequences to predict on
             tokens = self.tokenizer.texts_to_sequences([d])[0]
-            sequences.extend([tokens[:i+1] for i in range(1, len(tokens))])
+            sequences.extend([tokens[: i + 1] for i in range(1, len(tokens))])
         sequences = pad_sequences(
-            sequences, maxlen=self.max_len, padding="pre",
+            sequences,
+            maxlen=self.max_len,
+            padding="pre",
         )
         X = sequences[:, :-1]
-        y = np.array(to_categorical(
-            sequences[:, -1], num_classes=self.total_words,
-        ))
+        y = np.array(
+            to_categorical(
+                sequences[:, -1],
+                num_classes=self.total_words,
+            )
+        )
         return (X, y)
