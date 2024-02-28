@@ -1,8 +1,9 @@
+import os
 from tqdm import tqdm
 
 from keras import Input
 from keras.layers import Dense, Embedding, LSTM
-from keras.models import Sequential
+from keras.models import load_model, Sequential
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
@@ -17,6 +18,7 @@ class LSTMLanguageModel:
 
     :param features: 2D Numpy array of Netflow features data
     :param epochs: Number of times for model to train on the provided dataset
+    :param checkpoint: Directory to load/store the model checkpoint weights
     """
 
     def __init__(self, features: ndarray, epochs: int = 100):
@@ -27,6 +29,14 @@ class LSTMLanguageModel:
         self.data_ready = False
         self.model_ready = False
         self.model_trained = False
+        # Name / Path to save the model
+        self.model_path = "lstm_model_epochs_{:03d}.keras".format(epochs)
+        # Check to see if a model exists before running anything else
+        if os.path.exists(self.model_path):
+            self.model = load_model(self.model_path)
+            self.model_ready = True
+            self.model_trained = True
+            self.model.summary()
 
     def train(self, verbose: bool = True) -> None:
         """
@@ -34,16 +44,22 @@ class LSTMLanguageModel:
 
         :param verbose: Display output as the model trains
         """
-        if self.model_trained:
-            return
-
         if not self.data_ready or not self.model_ready:
             self.__prep_training_data__()
             self.__activate_layers__()
 
+        if self.model_trained:
+            return
+
         v = 1 if verbose else 0
-        self.model.fit(self.X, self.y, epochs=self.epochs, verbose=v)
+        self.model.fit(
+            self.X,
+            self.y,
+            epochs=self.epochs,
+            verbose=v,
+        )
         self.model_trained = True
+        self.model.save(self.model_path)
 
     def evaluate(self, data: ndarray) -> None:
         """
@@ -57,7 +73,7 @@ class LSTMLanguageModel:
         test_X, test_y = self.__prep_testing_data__(data)
         self.model.evaluate(test_X, test_y)
 
-    def evaluate_predictions(self, data: ndarray) -> np.float_:
+    def evaluate_predictions(self, data: ndarray) -> np.float_ | None:
         """
         Given some testing data, find the probability of accurate predictions
         throughout a Netflow's sequence of features.
@@ -71,8 +87,12 @@ class LSTMLanguageModel:
             self.train()
 
         test_X, test_y = self.__prep_testing_data__(data)
+
+        if len(test_X) == 0:
+            return None
+
         probabilities = []
-        predictions = self.model.predict(test_X)
+        predictions = self.model.predict(test_X, verbose=0)
         for y, probs in zip(test_y, predictions):
             probabilities.append(np.log(probs[np.where(y == 1)[0][0]]))
         return np.average(probabilities)
@@ -103,6 +123,7 @@ class LSTMLanguageModel:
             metrics=["accuracy"],
         )
         self.model_ready = True
+        self.model.summary()
 
     def __tokenize__(self, data: ndarray) -> None:
         """

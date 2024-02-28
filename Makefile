@@ -21,7 +21,7 @@ deep_clean:
 	rm -r ctu13
 	rm -r data
 	rm -r src/**/__pycache__
-	rm ctu13.tar.gz
+	rm ctu13.tar.gz lstm_model_epochs_*.keras
 
 merge_data:
 	./scripts/merge_vast_and_features ctu13/

@@ -5,6 +5,7 @@ import numpy as np
 from numpy import ndarray
 
 from models.lstm_language_model import LSTMLanguageModel
+from utils import stats
 
 
 def load_data(path: str) -> ndarray:
@@ -39,6 +40,67 @@ def split_data(data: ndarray, split: float = 0.8) -> tuple[ndarray, ndarray]:
     testing_set = data[~mask]
 
     return (training_set, testing_set)
+
+
+def calculate_threshold(data: ndarray, model: LSTMLanguageModel) -> np.float_:
+    """ """
+    probs = []
+    for ip in np.unique(data[:, 1]):
+        ip_data = data[np.where(data[:, 1] == ip)]
+        ip_feats = ip_data[:, 4:]
+        log_prob = model.evaluate_predictions(ip_feats)
+        probs.append(log_prob)
+    return np.percentile(probs, 0.95)
+
+
+def evaluate_data(data: ndarray, model: LSTMLanguageModel, thresh: float):
+    """ """
+    true_pos = 0
+    true_neg = 0
+    false_pos = 0
+    false_neg = 0
+
+    for ip in np.unique(data[:, 1]):
+        ip_data = data[np.where(data[:, 1] == ip)]
+        ip_feats = ip_data[:, 4:]
+        log_prob = model.evaluate_predictions(ip_feats)
+
+        if log_prob is None:
+            print(f"Unable to evaluate IP Addr.: {ip}\n")
+            continue
+
+        ip_label = "benign" if ip_data[0][3] == 0 else "bot"
+        derived_label = "benign" if log_prob >= thresh else "bot"
+
+        print(f"Evaluating IP Addr. [{ip}]")
+        print(f"\tLog Probability: {log_prob}")
+        print(f"\tTraffic from the IP is: {ip_label}")
+        print(f"\tTraffic was estimated to be: {derived_label}\n")
+
+        if ip_label == "benign":
+            # Test for false positives
+            if ip_label != derived_label:
+                false_pos += 1
+            # Test for true negatives
+            else:
+                true_neg += 1
+        else:
+            # Test for true positive
+            if ip_label == derived_label:
+                true_pos += 1
+            # Test for false negatives
+            else:
+                false_neg += 1
+
+    prec = stats.precision(true_pos, false_pos)
+    rec = stats.recall(true_pos, false_neg)
+    f_1 = stats.f1(true_pos, false_pos, false_neg)
+    mcc = stats.mcc(true_pos, true_neg, false_pos, false_neg)
+
+    print(f"Precision: {prec}")
+    print(f"Recall: {rec}")
+    print(f"F-1 Score: {f_1}")
+    print(f"Matthew's Correlation Coefficient: {mcc}")
 
 
 def main():
@@ -86,30 +148,13 @@ def main():
     ben_train, ben_test = split_data(benign_data)
     bot_train, bot_test = split_data(bot_data)
 
-    # Discard the timestamps, source ips, and destination ips
-    ben_train = np.delete(ben_train, np.s_[:3], axis=1)
-    ben_test = np.delete(ben_test, np.s_[:3], axis=1)
-    bot_train = np.delete(bot_train, np.s_[:3], axis=1)
-    bot_test = np.delete(bot_test, np.s_[:3], axis=1)
-
-    # Split off the labels from the features
-    ben_train_label = ben_train[:, 0]
-    ben_train_feat = ben_train[:, 1:]
-    ben_test_label = ben_test[:, 0]
-    ben_test_feat = ben_test[:, 1:]
-    bot_train_label = bot_train[:, 0]
-    bot_train_feat = bot_train[:, 1:]
-    bot_test_label = bot_test[:, 0]
-    bot_test_feat = bot_test[:, 1:]
-
-    # Set up the model and start training on benign training data.
-    model = LSTMLanguageModel(ben_train_feat, epochs=FLAGS.epochs)
+    # Set up the model and start training on benign training features
+    # The features start at index 4 and go to the end of the array
+    model = LSTMLanguageModel(ben_train[:, 4:], FLAGS.epochs)
     model.train()
+
     # Evaluate the predictions that the model makes
-    benign_log_prob = model.evaluate_predictions(ben_test_feat)
-    bot_log_prob = model.evaluate_predictions(bot_test_feat)
-    print(f"Avg. Log Probability for Benign Testing: {benign_log_prob}")
-    print(f"Avg. Log Probability for Bot Testing:    {bot_log_prob}")
+    evaluate_data(ben_test, model, 0.0)
 
 
 if __name__ == "__main__":
