@@ -50,7 +50,8 @@ def calculate_threshold(data: ndarray, model: LSTMLanguageModel) -> np.float_:
         ip_feats = ip_data[:, 4:]
         log_prob = model.evaluate_predictions(ip_feats)
         probs.append(log_prob)
-    return np.percentile(probs, 0.95)
+    np_probs = np.array(probs, dtype=np.float32)
+    return np.percentile(np_probs[~np.isnan(np_probs)], 0.95)
 
 
 def evaluate_data(data: ndarray, model: LSTMLanguageModel, thresh: float):
@@ -69,10 +70,11 @@ def evaluate_data(data: ndarray, model: LSTMLanguageModel, thresh: float):
             print(f"Unable to evaluate IP Addr.: {ip}\n")
             continue
 
-        ip_label = "benign" if ip_data[0][3] == 0 else "bot"
+        ip_label = "benign" if ip_data[0][3] == "0" else "bot"
         derived_label = "benign" if log_prob >= thresh else "bot"
 
         print(f"Evaluating IP Addr. [{ip}]")
+        print(f"\tThreshold: {thresh}")
         print(f"\tLog Probability: {log_prob}")
         print(f"\tTraffic from the IP is: {ip_label}")
         print(f"\tTraffic was estimated to be: {derived_label}\n")
@@ -145,8 +147,7 @@ def main():
     bot_data = load_data(bot_path)
 
     # Split the data into a training and testing set
-    ben_train, ben_test = split_data(benign_data)
-    bot_train, bot_test = split_data(bot_data)
+    ben_train, ben_test = split_data(benign_data, split=0.9)
 
     # Set up the model and start training on benign training features
     # The features start at index 4 and go to the end of the array
@@ -154,7 +155,9 @@ def main():
     model.train()
 
     # Evaluate the predictions that the model makes
-    evaluate_data(ben_test, model, 0.0)
+    threshold = float(calculate_threshold(ben_test, model))
+    print(f"Calculated threshold is: {threshold}")
+    evaluate_data(np.concatenate((ben_test, bot_data)), model, threshold)
 
 
 if __name__ == "__main__":

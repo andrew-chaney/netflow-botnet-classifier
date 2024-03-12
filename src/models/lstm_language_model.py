@@ -94,8 +94,14 @@ class LSTMLanguageModel:
         probabilities = []
         predictions = self.model.predict(test_X, verbose=0)
         for y, probs in zip(test_y, predictions):
-            probabilities.append(np.log(probs[np.where(y == 1)[0][0]]))
-        return np.average(probabilities)
+            try:
+                probabilities.append(np.log(probs[np.where(y == 1)[0][0]]))
+            except Exception:
+                print("Ran into exception while indexing...")
+                continue
+
+        np_probs = np.array(probabilities, dtype=np.float32)
+        return np.average(np_probs[~np.isnan(np_probs)])
 
     def __activate_layers__(self) -> None:
         """
