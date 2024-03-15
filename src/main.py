@@ -117,7 +117,7 @@ def main():
     parser.add_argument(
         "--bot-path",
         type=str,
-        required=True,
+        required=False,
         help="Input path to the sorted, bot data file",
     )
     parser.add_argument(
@@ -127,24 +127,36 @@ def main():
         required=False,
         help="Number of times to train on the data set",
     )
+    parser.add_argument(
+        "--evaluate",
+        type=bool,
+        default=False,
+        required=False,
+        help="Do you want to evaluate the bot data in addition to training?",
+    )
 
     FLAGS = parser.parse_args()
+
+    if FLAGS.evaluate and not FLAGS.bot_path:
+        print("ERROR: bot path required when evaluating")
+        return
 
     # Check the provided paths
     if not os.path.exists(FLAGS.benign_path):
         print("ERROR: benign file path provided is invalid")
         return
 
-    if not os.path.exists(FLAGS.bot_path):
+    if FLAGS.evaluate and not os.path.exists(FLAGS.bot_path):
         print("ERROR: bot file path provided is invalid")
         return
+    else:
+        bot_path = os.path.abspath(FLAGS.bot_path)
+        bot_data = load_data(bot_path)
 
     benign_path = os.path.abspath(FLAGS.benign_path)
-    bot_path = os.path.abspath(FLAGS.bot_path)
 
-    # Load the data
+    # Load the benign data
     benign_data = load_data(benign_path)
-    bot_data = load_data(bot_path)
 
     # Split the data into a training and testing set
     ben_train, ben_test = split_data(benign_data, split=0.9)
@@ -155,9 +167,10 @@ def main():
     model.train()
 
     # Evaluate the predictions that the model makes
-    threshold = float(calculate_threshold(ben_test, model))
-    print(f"Calculated threshold is: {threshold}")
-    evaluate_data(np.concatenate((ben_test, bot_data)), model, threshold)
+    if FLAGS.evaluate:
+        threshold = float(calculate_threshold(ben_test, model))
+        print(f"Calculated threshold is: {threshold}")
+        evaluate_data(np.concatenate((ben_test, bot_data)), model, threshold)
 
 
 if __name__ == "__main__":

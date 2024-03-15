@@ -1,4 +1,5 @@
 import os
+import re
 from tqdm import tqdm
 
 from keras import Input
@@ -30,12 +31,16 @@ class LSTMLanguageModel:
         self.model_ready = False
         self.model_trained = False
         # Name / Path to save the model
-        self.model_path = "lstm_model_epochs_{:03d}.keras".format(epochs)
+        self.model_path = self.__find_model_path__()
         # Check to see if a model exists before running anything else
         if os.path.exists(self.model_path):
             self.model = load_model(self.model_path)
+            # Update the output path for the model
+            training_num = re.search(r"\d{3}", self.model_path).group()
+            if training_num:
+                next_model_num = int(training_num) + 1
+                self.model_path = "lstm_model_{}.keras".format(next_model_num)
             self.model_ready = True
-            self.model_trained = True
             self.model.summary()
 
     def train(self, verbose: bool = True) -> None:
@@ -225,3 +230,14 @@ class LSTMLanguageModel:
             )
         )
         return (X, y)
+
+    def __find_model_path__(self) -> str:
+        model_files = []
+        for root, _, files in os.walk.path(os.curdir):
+            for file in files:
+                if ".keras" in file:
+                    model_files.append(os.path.join(root, file))
+
+        if len(model_files) > 0:
+            return sorted(model_files)[-1]
+        return "lstm_model_001.keras"
