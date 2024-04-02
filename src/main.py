@@ -43,7 +43,15 @@ def split_data(data: ndarray, split: float = 0.8) -> tuple[ndarray, ndarray]:
 
 
 def calculate_threshold(data: ndarray, model: LSTMLanguageModel) -> np.float_:
-    """ """
+    """
+    Calculates the probability threshold by taking the 95th percentile of the
+    probabilities from benign data.
+
+    :param data: Numpy array of data
+    :param model: Trained LSTM Language Model
+
+    :returns: Numpy float of the threshold
+    """
     probs = []
     for ip in np.unique(data[:, 1]):
         ip_data = data[np.where(data[:, 1] == ip)]
@@ -55,7 +63,14 @@ def calculate_threshold(data: ndarray, model: LSTMLanguageModel) -> np.float_:
 
 
 def evaluate_data(data: ndarray, model: LSTMLanguageModel, thresh: float):
-    """ """
+    """
+    Evaluates provided data (intended to be used on malicious data) by
+    comparing the probability of the data to the established threshold.
+
+    :param data: Numpy array of data
+    :param model: Trained LSTM Language Model
+    :param thresh: probability threshold to use for comparisons
+    """
     true_pos = 0
     true_neg = 0
     false_pos = 0

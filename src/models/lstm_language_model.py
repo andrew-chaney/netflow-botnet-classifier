@@ -233,7 +233,7 @@ class LSTMLanguageModel:
 
     def __find_model_path__(self) -> str:
         model_files = []
-        for root, _, files in os.walk.path(os.curdir):
+        for root, _, files in os.walk(os.curdir):
             for file in files:
                 if ".keras" in file:
                     model_files.append(os.path.join(root, file))
