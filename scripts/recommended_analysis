@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [[ ! -d data ]]; then
+	mkdir data
+fi
+
+if [[ ! -f data/tokenizer.pickle ]]; then
+	echo "Building tokenizer..."
+	python scripts/build_tokenizer.py
+fi
+
+echo "Starting to train model..."
+for i in $(seq 1 13); do
+	log_file="data/${i}_log.out"
+	if [[ ! -f $log_file ]]; then
+		touch $log_file
+	fi
+	for in_file in $(find ctu13/$i/benign_batched -type f); do
+		if grep -q "$in_file" $log_file; then
+			continue
+		fi
+		echo "Processing $in_file..." >>$log_file
+		python src/main.py --benign-path $in_file --bot-path ctu13/$i/bot.txt --epochs 25 &>>$log_file
+		printf "\n\n\n" >>$log_file
+	done
+done

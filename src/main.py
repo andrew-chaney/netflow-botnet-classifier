@@ -127,13 +127,19 @@ def main():
         "--benign-path",
         type=str,
         required=True,
-        help="Input path to the sorted, benign data file",
+        help="Input path to the benign data file",
     )
     parser.add_argument(
         "--bot-path",
         type=str,
         required=False,
-        help="Input path to the sorted, bot data file",
+        help="Input path to the bot data file",
+    )
+    parser.add_argument(
+        "--tokenizer-path",
+        type=str,
+        required=False,
+        help="Input path to the pickled tokenizer file",
     )
     parser.add_argument(
         "--epochs",
@@ -168,6 +174,19 @@ def main():
         bot_path = os.path.abspath(FLAGS.bot_path)
         bot_data = load_data(bot_path)
 
+    tokenizer_path = None
+    if FLAGS.tokenizer_path and not os.path.exists(FLAGS.tokenizer_path):
+        print("ERROR: tokenizer file path provided is invalid")
+        return
+    elif FLAGS.tokenizer_path:
+        tokenizer_path = os.path.abspath(FLAGS.tokenizer_path)
+    else:
+        print(
+            "WARNING: if training in batches it is highly recommended to \
+             provide a built tokenizer file to the model. \
+             See scripts/build_tokenizer.py or make run_recommended_analysis"
+        )
+
     benign_path = os.path.abspath(FLAGS.benign_path)
 
     # Load the benign data
@@ -178,7 +197,7 @@ def main():
 
     # Set up the model and start training on benign training features
     # The features start at index 4 and go to the end of the array
-    model = LSTMLanguageModel(ben_train[:, 4:], FLAGS.epochs)
+    model = LSTMLanguageModel(ben_train[:, 4:], tokenizer_path, FLAGS.epochs)
     model.train()
 
     # Evaluate the predictions that the model makes

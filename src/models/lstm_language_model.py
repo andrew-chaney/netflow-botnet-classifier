@@ -1,4 +1,5 @@
 import os
+import pickle
 import re
 from tqdm import tqdm
 
@@ -11,6 +12,8 @@ from tensorflow.keras.utils import to_categorical
 import numpy as np
 from numpy import ndarray
 
+from scripts.build_tokenizer import tokenize
+
 
 class LSTMLanguageModel:
     """
@@ -22,11 +25,15 @@ class LSTMLanguageModel:
     :param checkpoint: Directory to load/store the model checkpoint weights
     """
 
-    def __init__(self, features: ndarray, epochs: int = 100):
+    def __init__(
+        self, features: ndarray, tokenizer_path: str | None, epochs: int = 100
+    ):
         # Persist training data
         self.X = features
         self.epochs = epochs
+        self.tokenizer_path = tokenizer_path
         # Flags for defining LSTM state
+        self.tokenizer_ready = False
         self.data_ready = False
         self.model_ready = False
         self.model_trained = False
@@ -142,10 +149,14 @@ class LSTMLanguageModel:
 
         :param data: Numpy array of data sequence in the form of strings
         """
+        if self.tokenizer_ready:
+            return
+
         self.tokenizer = Tokenizer(filters='!"#$%&()*,/:;<=>?@[\\]^_`{|}~\t\n')
         for seq in tqdm(data, desc="Fitting Tokenizer"):
             self.tokenizer.fit_on_texts([seq])
         self.total_words = len(self.tokenizer.word_index) + 1
+        self.tokenizer_ready = True
 
     def __sequence__(self, data: ndarray) -> None:
         """
@@ -191,7 +202,10 @@ class LSTMLanguageModel:
             return
 
         self.X = self.__flatten_to_strs__(self.X)
-        self.__tokenize__(self.X)
+        if self.tokenizer_path is not None:
+            self.__load_tokenizer__()
+        else:
+            self.__tokenize__(self.X)
         self.__sequence__(self.X)
         self.X = self.sequences[:, :-1]
         self.y = np.array(
@@ -241,3 +255,12 @@ class LSTMLanguageModel:
         if len(model_files) > 0:
             return sorted(model_files)[-1]
         return "lstm_model_001.keras"
+
+    def __load_tokenizer__(self) -> None:
+        if self.tokenizer_ready:
+            return
+
+        with open(self.tokenizer_path, "rb") as file:
+            self.tokenizer = pickle.load(file)
+        self.total_words = len(self.tokenizer.word_index) + 1
+        self.tokenizer_ready = True
