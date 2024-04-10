@@ -7,6 +7,10 @@ for i in $(seq 1 13); do
 	ben_file="$base/benign.txt"
 	bot_file="$base/bot.txt"
 
+	if [[ -d $base/benign_batched ]]; then
+		continue
+	fi
+
 	# Split the benign file into smaller files for easier processing
 	split -l 10000 $ben_file
 	if [[ ! -d $base/benign_batched ]]; then
@@ -27,10 +31,16 @@ fi
 echo "Starting to train model..."
 last_file=""
 for i in $(seq 1 13); do
-	log_file="data/${i}_log.out"
+	log_file="data/training_logs/${i}_log.out"
+
+	if [[ ! -d data/training_logs ]]; then
+		mkdir data/training_logs
+	fi
+
 	if [[ ! -f $log_file ]]; then
 		touch $log_file
 	fi
+
 	for in_file in $(find ctu13/$i/benign_batched -type f); do
 		if grep -q "$in_file" $log_file; then
 			continue
@@ -44,6 +54,15 @@ done
 
 echo "Running model evaluations..."
 for i in $(seq 1 13); do
+	log_file="data/evaluation_logs/${i}_log.out"
+
+	if [[ ! -d data/evaluation_logs ]]; then
+		mkdir data/evaluation_logs
+	fi
+
+	if [[ ! -f $log_file ]]; then
+		touch $log_file
+	fi
 	echo "Evaluationg ctu13/$i:"
-	python src/main.py --benign-path $last_file --bot-path ctu13/$i/bot.txt --skip-training --evaluate
+	python src/main.py --benign-path $last_file --bot-path ctu13/$i/bot.txt --skip-training --evaluate &>>$log_file
 done
