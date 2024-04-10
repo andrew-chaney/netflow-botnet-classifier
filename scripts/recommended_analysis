@@ -7,12 +7,6 @@ for i in $(seq 1 13); do
 	ben_file="$base/benign.txt"
 	bot_file="$base/bot.txt"
 
-	# Separate out the benign entries
-	awk -F ',' '{ if ($4==0) { print $0 }}' $output_file_3 >$ben_file
-
-	# Separate out the bot entries
-	awk -F ',' '{ if ($4==1) { print $0 }}' $output_file_3 >$bot_file
-
 	# Split the benign file into smaller files for easier processing
 	split -l 10000 $ben_file
 	if [[ ! -d $base/benign_batched ]]; then
@@ -25,7 +19,7 @@ if [[ ! -d data ]]; then
 	mkdir data
 fi
 
-if [[ ! -f data/tokenizer.pickle ]]; then
+if [[ ! -f data/tokenizer-13.pickle ]]; then
 	echo "Building tokenizer..."
 	python scripts/build_tokenizer.py
 fi

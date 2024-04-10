@@ -32,13 +32,13 @@ pull_data:
 run_data_pipeline: pull_data unpack_data merge_data
 
 run_full_lang_analysis:
-	python src/main.py --benign-path data/sorted_benign_traffic.txt --bot-path data/sorted_bot_traffic.txt
-
-run_recommended_analysis:
-	./scripts/recommended_analysis
+	python src/main.py --benign-path data/agg_benign_traffic.txt --bot-path data/agg_bot_traffic.txt
 
 run_micro_recommended_analysis:
 	./scripts/micro_recommended_analysis
+
+run_recommended_analysis:
+	./scripts/recommended_analysis
 
 unpack_data:
 	tar -xzvf ctu13.tar.gz

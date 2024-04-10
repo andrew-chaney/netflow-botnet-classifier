@@ -31,6 +31,8 @@ for i in $(seq 1 13); do
 	output_file_1="$base/merged1.txt"
 	output_file_2="$base/merged2.txt"
 	output_file_3="$base/merged.txt"
+	ben_file="$base/benign.txt"
+	bot_file="$base/bot.txt"
 
 	# Make sure that the vast file exists
 	if [ ! -f $vast_file ]; then
@@ -74,4 +76,41 @@ for i in $(seq 1 13); do
 	for file in $output_file_1 $output_file_2; do
 		rm $file
 	done
+
+	# Separate out the benign entries
+	awk -F ',' '{ if ($4==0) { print $0 }}' $output_file_3 >$ben_file
+
+	# Separate out the bot entries
+	awk -F ',' '{ if ($4==1) { print $0 }}' $output_file_3 >$bot_file
 done
+
+# Aggregate benign and bot files
+echo "Aggregating benign and bot files..."
+if [[ ! -d data ]]; then
+	mkdir data
+fi
+
+if [[ -f data/agg_benign_traffic.txt ]]; then
+	rm data/agg_benign_traffic.txt
+fi
+
+if [[ -f data/agg_bot_traffic.txt ]]; then
+	rm data/agg_bot_traffic.txt
+fi
+
+for i in $(seq 1 13); do
+	cat ctu13/$i/benign.txt >>data/agg_benign_traffic.txt
+	cat ctu13/$i/bot.txt >>data/agg_bot_traffic.txt
+done
+
+ben_line_count=$(find ctu13 -name benign.txt | xargs wc -l | tail -1 | awk '{print $1}')
+agg_ben_line_count=$(wc -l data/agg_benign_traffic.txt | awk '{print $1}')
+if [[ $ben_line_count -ne $agg_ben_line_count ]]; then
+	echo "Warning: line count of aggregated benign traffic differs from total of individual benign file line count."
+fi
+
+bot_line_count=$(find ctu13 -name bot.txt | xargs wc -l | tail -1 | awk '{print $1}')
+agg_bot_line_count=$(wc -l data/agg_bot_traffic.txt | awk '{print $1}')
+if [[ $bot_line_count -ne $agg_bot_line_count ]]; then
+	echo "Warning: line count of aggregated bot traffic differs from total of individual bot file line count."
+fi
