@@ -42,7 +42,7 @@ for i in $(seq 1 13); do
 			continue
 		fi
 		echo "Processing $in_file..." >>$log_file
-		python src/main.py --benign-path $in_file --bot-path ctu13/$i/bot.txt --epochs 25 &>>$log_file
+		python src/main.py --benign-path $in_file --bot-path ctu13/$i/bot.txt --epochs 25 --tokenizer-path data/tokenizer-13.pickle &>>$log_file
 		printf "\n\n\n" >>$log_file
 		last_file=$in_file
 	done
