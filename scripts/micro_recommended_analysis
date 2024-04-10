@@ -20,7 +20,6 @@ for i in $(seq 1 13); do
 	if [[ $(wc -l $ben_file | awk '{print $1}') -gt $split_size ]]; then
 		shuf -n $split_size $ben_file -o $base/new_ben.txt
 		mv $base/new_ben.txt $ben_file
-		rm $base/new_ben.txt
 	fi
 
 	# Split the benign file into smaller files for easier processing

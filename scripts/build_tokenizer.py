@@ -15,6 +15,7 @@ def flatten_to_strs(arr, delim=" "):
 
 
 def tokenize(data, path):
+    global tokenizer
     tokenizer = Tokenizer(filters='!"#$%&()*,/:;<=>?@[\\]^_`{|}~\t\n')
     for seq in tqdm(data, desc=path):
         tokenizer.fit_on_texts([seq])
@@ -38,6 +39,8 @@ def process_file(path):
 
 
 def pickle_tokenizer():
+    global cur
+    global tokenizer
     print(f"Pickling tokenizer: {cur}")
     with open("data/tokenizer-{}.pickle".format(cur), "wb") as file:
         pickle.dump(tokenizer, file, protocol=pickle.HIGHEST_PROTOCOL)
@@ -62,11 +65,20 @@ def get_current_tokenizer():
 
 
 def main():
+    global cur
+    global tokenizer
     print(
         "\nNote: If this program stops runnning before it completes then simply rerun it. It has the ability to pick up where it left off.\n"
     )
 
     cur = get_current_tokenizer()
+
+    if cur - 1 > 0:
+        with open("data/tokenizer-{}.pickle".format(cur - 1), "rb") as file:
+            tokenizer = pickle.load(file)
+            print(f"Loaded Latest tokenizer: data/tokenizer-{cur - 1}")
+            print(f"Tokenizer Word Count: {tokenizer.word_index}")
+
     paths = []
     for root, _, files in os.walk("ctu13"):
         for file in files:
