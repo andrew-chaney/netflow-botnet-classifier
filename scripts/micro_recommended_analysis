@@ -1,7 +1,8 @@
 #!/bin/bash
 
-split_size=250000
+split_size=50000
 
+echo "Preparing data for training..."
 # Split up the data
 for i in $(seq 1 13); do
 	base="ctu13/$i"
@@ -58,5 +59,6 @@ done
 
 echo "Running model evaluations..."
 for i in $(seq 1 13); do
+	echo "Evaluationg ctu13/$i:"
 	python src/main.py --benign-path $last_file --bot-path ctu13/$i/bot.txt --skip-training --evaluate
 done
