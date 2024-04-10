@@ -6,7 +6,7 @@ from tqdm import tqdm
 import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-cur = None
+cur = 1
 tokenizer = Tokenizer(filters='!"#$%&()*,/:;<=>?@[\\]^_`{|}~\t\n')
 
 
