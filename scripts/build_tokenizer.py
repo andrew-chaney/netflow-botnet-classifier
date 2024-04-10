@@ -22,6 +22,17 @@ def tokenize(data, path):
 
 def process_file(path):
     data = np.loadtxt(path, delimiter=",", dtype=str)
+
+    # We only want to sample 80% since this is what the default model will
+    # train on. Change this number if you plan on changing it in the main
+    # source code.
+    split = 0.8
+    unique_ips = np.unique(data[:, 1])
+    train_size = int((unique_ips.size * split) // 1)
+    train_ips = np.random.choice(unique_ips, size=train_size, replace=False)
+    mask = np.in1d(data[:, 1], train_ips)
+
+    data = data[mask]
     data = flatten_to_strs(data)
     tokenize(data, path)
 
