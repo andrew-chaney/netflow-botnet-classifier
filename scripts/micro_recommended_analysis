@@ -1,16 +1,25 @@
 #!/bin/bash
 
-# Split up the data for processing
+split_size=250000
+
+# Split up the data
 for i in $(seq 1 13); do
 	base="ctu13/$i"
+	in_file="$base/merged.txt"
 	ben_file="$base/benign.txt"
 	bot_file="$base/bot.txt"
 
 	# Separate out the benign entries
-	awk -F ',' '{ if ($4==0) { print $0 }}' $output_file_3 >$ben_file
+	awk -F ',' '{ if ($4==0) { print $0 }}' $in_file >$ben_file
+
+	# Key difference with micro is training on a smaller sample
+	if [[ $(wc -l $ben_file | awk '{print $1}') -gt $split_size ]]; then
+		shuf -n $split_size $ben_file -o $base/new_ben.txt
+		mv $base/new_ben.txt $ben_file
+	fi
 
 	# Separate out the bot entries
-	awk -F ',' '{ if ($4==1) { print $0 }}' $output_file_3 >$bot_file
+	awk -F ',' '{ if ($4==1) { print $0 }}' $in_file >$bot_file
 
 	# Split the benign file into smaller files for easier processing
 	split -l 10000 $ben_file

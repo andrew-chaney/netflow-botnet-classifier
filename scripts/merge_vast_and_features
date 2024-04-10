@@ -31,8 +31,6 @@ for i in $(seq 1 13); do
 	output_file_1="$base/merged1.txt"
 	output_file_2="$base/merged2.txt"
 	output_file_3="$base/merged.txt"
-	ben_file="$base/benign.txt"
-	bot_file="$base/bot.txt"
 
 	# Make sure that the vast file exists
 	if [ ! -f $vast_file ]; then
@@ -76,17 +74,4 @@ for i in $(seq 1 13); do
 	for file in $output_file_1 $output_file_2; do
 		rm $file
 	done
-
-	# Separate out the benign entries
-	awk -F ',' '{ if ($4==0) { print $0 }}' $output_file_3 >$ben_file
-
-	# Separate out the bot entries
-	awk -F ',' '{ if ($4==1) { print $0 }}' $output_file_3 >$bot_file
-
-	# Split the benign file into smaller files for easier processing
-	split -l 1000 $ben_file
-	if [[ ! -d $base/benign_batched ]]; then
-		mkdir $base/benign_batched
-	fi
-	mv x* $base/benign_batched
 done

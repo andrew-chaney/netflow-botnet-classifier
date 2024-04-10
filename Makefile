@@ -37,5 +37,8 @@ run_full_lang_analysis:
 run_recommended_analysis:
 	./scripts/recommended_analysis
 
+run_micro_recommended_analysis:
+	./scripts/micro_recommended_analysis
+
 unpack_data:
 	tar -xzvf ctu13.tar.gz

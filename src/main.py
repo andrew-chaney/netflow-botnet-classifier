@@ -153,6 +153,15 @@ def main():
         type=bool,
         default=False,
         required=False,
+        action="store_true",
+        help="Do you want to evaluate the bot data in addition to training?",
+    )
+    parser.add_argument(
+        "--skip-training",
+        type=bool,
+        default=False,
+        required=False,
+        action="store_true",
         help="Do you want to evaluate the bot data in addition to training?",
     )
 
@@ -198,7 +207,9 @@ def main():
     # Set up the model and start training on benign training features
     # The features start at index 4 and go to the end of the array
     model = LSTMLanguageModel(ben_train[:, 4:], tokenizer_path, FLAGS.epochs)
-    model.train()
+
+    if not FLAGS.skip_training:
+        model.train()
 
     # Evaluate the predictions that the model makes
     if FLAGS.evaluate:

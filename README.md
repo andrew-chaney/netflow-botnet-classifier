@@ -6,9 +6,9 @@ _Warning:_ This library requires significant amounts of memory to run. It is rec
 ## Commands to Run
 To execute portions of the project, you can run the following commands.
 1. `make run_data_pipeline`: This command will run the entire pipeline from pulling and unpacking the data to merging, aggregating, and sorting it all.
-2. `make create_small_data_sample`: This command will create a small, sorted sample of bot and benign traffic from the larger data set.
-3. `make run_full_lang_analysis`: This command will train and evaluate the LSTM Language Model with the large set of data for 100 epochs.
-4. `make run_small_lang_analysis`: This command will train and evaluate the LSTM Language Model with the small set of data for 2 epochs. (For quick testing)
+2. `make run_full_lang_analysis`: This command will train and evaluate the LSTM Language Model with the large set of data for 100 epochs.
+3. `make run_recommended_analysis`: This command will train and evaluate the LSTM Language Model with the full set of data for 25 epochs while fitting the tokenizer ahead of time and breaking up the data into smaller chunks for training.
+4. `make run_micro_recommended_analysis`: This command will train and evaluate the LSTM Language Model on a subset of data for 25 epochs while fitting the tokenizer ahead of time and breaking up the data into smaller chunks for training.
 5. `make clean`: This command cleans all of the unpacked and generated data, except for the zipped, tar file.
 6. `make deep_clean`: This command cleans all of the data files, including the zipped, tar file.
 
