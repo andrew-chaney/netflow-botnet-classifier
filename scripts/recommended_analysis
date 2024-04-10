@@ -11,11 +11,10 @@ for i in $(seq 1 13); do
 		continue
 	fi
 
+	mkdir $base/benign_batched
+
 	# Split the benign file into smaller files for easier processing
 	split -l 10000 $ben_file
-	if [[ ! -d $base/benign_batched ]]; then
-		mkdir $base/benign_batched
-	fi
 	mv x* $base/benign_batched
 done
 
