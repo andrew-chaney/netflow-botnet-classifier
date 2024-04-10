@@ -34,7 +34,7 @@ def pickle_tokenizer():
 
 def get_id_from_path(path):
     split_idx = -1
-    if "merged" in path:
+    if "benign" in path:
         split_idx = -2
     path_str = path.split("/")[split_idx]
     return int(re.search(r"\d{1,2}", path_str).group())
@@ -59,7 +59,7 @@ def main():
     paths = []
     for root, _, files in os.walk("ctu13"):
         for file in files:
-            if "merged" in file:
+            if "benign" in file:
                 paths.append(os.path.join(root, file))
 
     for path in tqdm(
