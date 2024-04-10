@@ -72,6 +72,7 @@ for i in $(seq 1 13); do
 	if [[ ! -f $log_file ]]; then
 		touch $log_file
 	fi
+
 	echo "Evaluationg ctu13/$i:"
 	python src/main.py --benign-path $last_file --bot-path ctu13/$i/bot.txt --skip-training --evaluate &>>$log_file
 done
