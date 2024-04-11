@@ -12,8 +12,6 @@ from tensorflow.keras.utils import to_categorical
 import numpy as np
 from numpy import ndarray
 
-from scripts.build_tokenizer import tokenize
-
 
 class LSTMLanguageModel:
     """
