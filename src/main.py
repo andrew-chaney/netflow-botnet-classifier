@@ -150,7 +150,6 @@ def main():
     )
     parser.add_argument(
         "--evaluate",
-        type=bool,
         default=False,
         required=False,
         action="store_true",
@@ -158,7 +157,6 @@ def main():
     )
     parser.add_argument(
         "--skip-training",
-        type=bool,
         default=False,
         required=False,
         action="store_true",
