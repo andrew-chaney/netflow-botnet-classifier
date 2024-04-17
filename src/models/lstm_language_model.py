@@ -41,9 +41,9 @@ class LSTMLanguageModel:
         if os.path.exists(self.model_path):
             self.model = load_model(self.model_path)
             # Update the output path for the model
-            training_num = re.search(r"\d{3}", self.model_path).group()
+            training_num = re.search(r"\d{3}", self.model_path)
             if training_num:
-                next_model_num = int(training_num) + 1
+                next_model_num = int(training_num.group()) + 1
                 self.model_path = "lstm_model_{}.keras".format(next_model_num)
             self.model_ready = True
             self.model.summary()
