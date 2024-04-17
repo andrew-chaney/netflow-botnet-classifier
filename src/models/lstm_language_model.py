@@ -128,7 +128,7 @@ class LSTMLanguageModel:
         # Layer 0 - Input Layer
         self.model.add(Input(shape=(self.X.shape[1],)))
         # Layer 1 - Embedding Layer
-        self.model.add(Embedding(self.total_words, 100))
+        self.model.add(Embedding(self.total_words, 100, input_length=27))
         # Layer 2 - LSTM Layer
         self.model.add(LSTM(150, activation="tanh"))
         # Layer 3 - SoftMax (Output) Layer
@@ -170,7 +170,7 @@ class LSTMLanguageModel:
             for i in range(1, len(tokens)):
                 self.sequences.append(tokens[: i + 1])
         # Pad the sequences to the same length
-        self.max_len = max([len(seq) for seq in self.sequences])
+        self.max_len = 27  # max([len(seq) for seq in self.sequences])
         self.sequences = np.array(
             pad_sequences(
                 self.sequences,
