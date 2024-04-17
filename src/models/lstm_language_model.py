@@ -128,7 +128,7 @@ class LSTMLanguageModel:
         # Layer 0 - Input Layer
         self.model.add(Input(shape=(self.X.shape[1],)))
         # Layer 1 - Embedding Layer
-        self.model.add(Embedding(self.total_words, 100, input_length=27))
+        self.model.add(Embedding(self.total_words, 100))
         # Layer 2 - LSTM Layer
         self.model.add(LSTM(150, activation="tanh"))
         # Layer 3 - SoftMax (Output) Layer
