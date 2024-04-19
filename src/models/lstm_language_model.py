@@ -30,6 +30,7 @@ class LSTMLanguageModel:
         self.X = features
         self.epochs = epochs
         self.tokenizer_path = tokenizer_path
+        self.max_len = 27
         # Flags for defining LSTM state
         self.tokenizer_ready = False
         self.data_ready = False
@@ -95,6 +96,9 @@ class LSTMLanguageModel:
         """
         if not self.model_trained:
             self.train()
+
+        if not self.tokenizer_ready:
+            self.__load_tokenizer__()
 
         test_X, test_y = self.__prep_testing_data__(data)
 
@@ -170,7 +174,7 @@ class LSTMLanguageModel:
             for i in range(1, len(tokens)):
                 self.sequences.append(tokens[: i + 1])
         # Pad the sequences to the same length
-        self.max_len = 27  # max([len(seq) for seq in self.sequences])
+        # self.max_len = max([len(seq) for seq in self.sequences])
         self.sequences = np.array(
             pad_sequences(
                 self.sequences,

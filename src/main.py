@@ -208,6 +208,11 @@ def main():
 
     if not FLAGS.skip_training:
         model.train()
+    else:
+        if not FLAGS.tokenizer_path:
+            print("WARNING: tokenizer path is required to skip training")
+            return
+        model.model_trained = True
 
     # Evaluate the predictions that the model makes
     if FLAGS.evaluate:

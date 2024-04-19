@@ -37,7 +37,7 @@ if [[ ! -f data/tokenizer-13.pickle ]]; then
 fi
 
 echo "Starting to train model..."
-last_file=""
+last_file="ctu13/1/benign_batched/xaa"
 for i in $(seq 1 13); do
 	log_file="data/training_logs/${i}_log.out"
 
@@ -73,5 +73,5 @@ for i in $(seq 1 13); do
 	fi
 
 	echo "Evaluationg ctu13/$i:"
-	python src/main.py --benign-path $last_file --bot-path ctu13/$i/bot.txt --skip-training --evaluate &>>$log_file
+	python src/main.py --benign-path $last_file --bot-path ctu13/$i/bot.txt --tokenizer-path data/tokenizer-13.pickle --skip-training --evaluate &>>$log_file
 done
