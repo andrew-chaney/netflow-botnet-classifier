@@ -9,7 +9,10 @@ def precision(tp: int, fp: int) -> float:
     :param fp: false positives
     :returns: the precision value
     """
-    return tp / (tp + fp)
+    try:
+        return tp / (tp + fp)
+    except Exception:
+        return float("-inf")
 
 
 def recall(tp: int, fn: int) -> float:
@@ -20,7 +23,10 @@ def recall(tp: int, fn: int) -> float:
     :param fn: false negatives
     :returns: the recall value
     """
-    return tp / (tp + fn)
+    try:
+        return tp / (tp + fn)
+    except Exception:
+        return float("-inf")
 
 
 def f1(tp: int, fp: int, fn: int) -> float:
@@ -34,7 +40,10 @@ def f1(tp: int, fp: int, fn: int) -> float:
     """
     prec = precision(tp, fp)
     rec = recall(tp, fn)
-    return 2 * ((prec * rec) / (prec + rec))
+    try:
+        return 2 * ((prec * rec) / (prec + rec))
+    except Exception:
+        return float("-inf")
 
 
 def mcc(tp: int, tn: int, fp: int, fn: int) -> float:
@@ -49,4 +58,7 @@ def mcc(tp: int, tn: int, fp: int, fn: int) -> float:
     """
     numerator = (tp * tn) - (fp * fn)
     denominator = sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
-    return numerator / denominator
+    try:
+        return numerator / denominator
+    except Exception:
+        return float("-inf")

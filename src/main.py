@@ -114,6 +114,11 @@ def evaluate_data(data: ndarray, model: LSTMLanguageModel, thresh: float):
     f_1 = stats.f1(true_pos, false_pos, false_neg)
     mcc = stats.mcc(true_pos, true_neg, false_pos, false_neg)
 
+    print(f"True Positive: {true_pos}")
+    print(f"True Negative: {true_neg}")
+    print(f"False Positive: {false_pos}")
+    print(f"False Negative: {false_neg}")
+
     print(f"Precision: {prec}")
     print(f"Recall: {rec}")
     print(f"F-1 Score: {f_1}")
